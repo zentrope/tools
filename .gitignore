@@ -1,0 +1,9 @@
+.DS_Store
+bsdpkg
+*tgz
+*tar
+*gz
+
+# In case these are present for dev
+stage
+meta

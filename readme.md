@@ -10,11 +10,12 @@ stitching them all together.
 - [x] deal with and use command-line options (flag pkg)
 - [x] read in a JSON manifest file
 - [x] interpolate file chsecksums into manifest
-- [ ] interpolate pre/post de/install scripts into manifest
-- [ ] how to print out a compact version of the manifest (omitempty?)
-- [ ] add files to a tar
-- [ ] gzip compress a tar
-- [ ] can you just assert  `/usr/local/*` paths in the archive?
+- [x] how to print out a compact version of the manifest (omitempty?)
+- [x] interpolate pre/post de/install scripts into manifest
+- [x] add files to a tar
+- [x] gzip compress a tar
+- [x] assert  `/usr/local/*` paths in the archive? (Yes)
+- [ ] flags to set app version and pkg number
 
 If I can get this working, packaging scripts can focus mostly on
 moving files into an appropriate hierarchy, then invoking this.
