@@ -1,4 +1,5 @@
 .DS_Store
+bsdpkg
 *tgz
 *tar
 *gz
