@@ -1,6 +1,6 @@
-# bsdpkg
+# tools
 
-**TODO**
+**BSDPKG**
 
 Since this is a new language, pick small problems to solve before
 stitching them all together.
@@ -15,16 +15,19 @@ stitching them all together.
 - [x] add files to a tar
 - [x] gzip compress a tar
 - [x] assert  `/usr/local/*` paths in the archive? (Yes)
-- [ ] flags to set app version and pkg number
+- [x] flags to set app version and pkg number
+- [ ] move this to cmd/bsdpkg/readme.md
+- [ ] tests
 
 If I can get this working, packaging scripts can focus mostly on
-moving files into an appropriate hierarchy, then invoking this.
+moving files into an appropriate hierarchy (see `kmake`), then
+invoking this.
 
 So, this doesn't have to be complete enough to compete with the true
 pkg-create command. Just be something good enough for Clojure (or
 similar) apps.
 
-**OUT OF SCOPE**
+**KMAKE**
 
 Figure out an interesting data structure that can represent arbitrary
 projects such that the whole thing can be automated: take in the data
