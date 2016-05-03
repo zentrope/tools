@@ -3,12 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/zentrope/tools/lib/fs"
 )
 
 type Project struct {
@@ -47,40 +48,13 @@ func (p *Project) build() error {
 	return cmd.Run()
 }
 
-func doCopy(source, target string) error {
-
-	var err error
-
-	reader, err := os.Open(source)
-	if err != nil {
-		return err
-	}
-
-	info, err := reader.Stat()
-	if err != nil {
-		return err
-	}
-
-	writer, err := os.Create(target)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		writer.Chmod(info.Mode())
-		writer.Close()
-	}()
-
-	_, err = io.Copy(writer, reader)
-
-	return err
-}
-
 func (p *Project) stage() error {
 	fmt.Printf("\nstaging...\n")
 	dir := p.projectDir()
 	stage := p.stageDir()
 
+	// Resolve a potentially globbed path into the first matching
+	// element and place it in the project directory.
 	resolve := func(pattern string) string {
 		path := filepath.Join(dir, pattern)
 		matches, _ := filepath.Glob(path)
@@ -90,19 +64,26 @@ func (p *Project) stage() error {
 		return matches[0]
 	}
 
+	// map[source]destination
 	for k, v := range p.Artifacts {
-		src := resolve(k)
-		tgt := filepath.Join(stage, resolve(v))
-		bse := filepath.Dir(tgt)
-		fmt.Printf("%s -> %s\n", src, tgt)
-		err := os.MkdirAll(bse, 0755)
+
+		sourceFile := resolve(k)
+		targetFile := filepath.Join(stage, resolve(v))
+
+		targetDir := filepath.Dir(targetFile)
+		err := os.MkdirAll(targetDir, 0755)
 		if err != nil {
 			return err
 		}
 
-		doCopy(src, tgt)
-		if err != nil {
-			return err
+		if err, ok := fs.IsDir(sourceFile); ok {
+			fs.CopyDir(sourceFile, targetFile)
+		} else {
+			fmt.Printf(" - copy: %s -> %s\n", sourceFile, targetFile)
+			fs.CopyFile(sourceFile, targetFile)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
