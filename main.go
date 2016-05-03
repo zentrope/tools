@@ -47,15 +47,16 @@ type Manifest struct {
 	Deps       map[string]PkgDep `json:"deps,omitempty"`
 }
 
-func findManifest(path string) *Manifest {
+func newManifest(ctx context) *Manifest {
 	m := Manifest{}
-	contents, err := ioutil.ReadFile(path)
+	contents, err := ioutil.ReadFile(ctx.manifestFile)
 	if err != nil {
 		panic(err)
 	}
 	if err := json.Unmarshal(contents, &m); err != nil {
 		panic(err)
 	}
+	m.Version = fmt.Sprintf("%s_%s", ctx.version, ctx.pnum)
 	m.Scripts = nil // remove this fakery if ok to keep in +COMPACT
 	return &m
 }
@@ -273,6 +274,8 @@ type context struct {
 	stageDir     string
 	manifestFile string
 	metaDir      string
+	version      string
+	pnum         string
 }
 
 func newContext() context {
@@ -287,6 +290,12 @@ func newContext() context {
 	flag.StringVar(&context.metaDir, "meta", "./meta",
 		"Location of pre/post de/install scripts.")
 
+	flag.StringVar(&context.version, "version", "0.1.0",
+		"Version of the app being packaged.")
+
+	flag.StringVar(&context.pnum, "pnum", "1",
+		"Package number.")
+
 	flag.Parse()
 	return context
 }
@@ -300,9 +309,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	compact := findManifest(ctx.manifestFile)
-
-	manifest := findManifest(ctx.manifestFile)
+	compact := newManifest(ctx)
+	manifest := newManifest(ctx)
 	manifest.addArtifacts(artifacts)
 	manifest.addScripts(ctx.metaDir)
 
