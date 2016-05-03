@@ -12,14 +12,19 @@ import (
 	"github.com/zentrope/tools/lib/fs"
 )
 
+type Artifact struct {
+	Src  string `json:"src"`
+	Dest string `json:"dest"`
+}
+
 type Project struct {
-	Project     string            `json:"project"`
-	Version     string            `json:"version"`
-	Package     string            `json:"package"`
-	ProjectDir  string            `json:"project-dir"`
-	BuildCmd    string            `json:"build-cmd"`
-	BuildTarget string            `json:"build-target"`
-	Artifacts   map[string]string `json:"artifacts"`
+	Project     string     `json:"project"`
+	Version     string     `json:"version"`
+	Package     string     `json:"package"`
+	ProjectDir  string     `json:"project-dir"`
+	BuildCmd    string     `json:"build-cmd"`
+	BuildTarget string     `json:"build-target"`
+	Artifacts   []Artifact `json:"artifacts"`
 }
 
 func (p *Project) projectDir() string {
@@ -38,7 +43,6 @@ func (p *Project) build() error {
 
 	dir := p.projectDir()
 
-	//name := fmt.Sprintf("%s-%s_%s", p.Project, p.Version, p.Package)
 	fmt.Printf(" - '%s' in '%s' using '%s %s'...\n", p.Project, dir, p.BuildCmd, p.BuildTarget)
 	cmd := exec.Command(p.BuildCmd, p.BuildTarget)
 	cmd.Dir = dir
@@ -64,8 +68,10 @@ func (p *Project) stage() error {
 		return matches[0]
 	}
 
-	// map[source]destination
-	for k, v := range p.Artifacts {
+	for _, artifact := range p.Artifacts {
+
+		k := artifact.Src
+		v := artifact.Dest
 
 		sourceFile := resolve(k)
 		targetFile := filepath.Join(stage, resolve(v))
