@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -95,15 +96,29 @@ func (p *Project) stage() error {
 	return nil
 }
 
+type context struct {
+	target string
+}
+
+func newContext() context {
+	c := context{}
+
+	flag.StringVar(&c.target, "target", "", "Override build target.")
+
+	flag.Parse()
+	return c
+}
+
 func main() {
 
-	// TODO: -target <build target>
 	// TODO: -stage-dir
 	// TODO: -f <make file>
 	// TODO: -v verbose
 
 	// TODO: clean command -- with detritus in make.json?
 	// TODO: build command
+
+	ctx := newContext()
 
 	contents, err := ioutil.ReadFile("make.json")
 	if err != nil {
@@ -113,6 +128,10 @@ func main() {
 	var project Project
 	if err := json.Unmarshal(contents, &project); err != nil {
 		panic(err)
+	}
+
+	if len(ctx.target) != 0 {
+		project.BuildTarget = ctx.target
 	}
 
 	err = project.build()
