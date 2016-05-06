@@ -310,14 +310,11 @@ func main() {
 	}
 
 	compact := newManifest(ctx)
+
+	// TODO: why not a single constructor?
 	manifest := newManifest(ctx)
 	manifest.addArtifacts(artifacts)
 	manifest.addScripts(ctx.metaDir)
-
-	// filename := tarball(manifest, compact, artifacts, ".")
-	// if err := compress(filename); err != nil {
-	//	panic(err)
-	// }
 
 	if err := tgz(manifest, compact, artifacts, "."); err != nil {
 		panic(err)
