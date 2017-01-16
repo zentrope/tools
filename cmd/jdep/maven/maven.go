@@ -57,12 +57,20 @@ func (repo *Repo) getPomFromNet(pomUri string) (*Pom, error) {
 
 //-----------------------------------------------------------------------------
 
+// A given pom might have a parent (which might have a parent) each of
+// which might contain properties used by descendent poms.
+
 type Pom struct {
 	Name         string       `xml:"name"`
 	ArtifactId   string       `xml:"artifactId"`
-	Packaging    string       `xml:"jar"`
-	Parent       Dependency   `xml:"parent"` // might contains props used by children
+	Packaging    string       `xml:"packaging"`
+	Version      string       `xml:"version"` // If no version, use parents'
+	Parent       Dependency   `xml:"parent,omitempty"`
 	Dependencies []Dependency `xml:"dependencies>dependency"`
+}
+
+func (pom *Pom) HasParent() bool {
+	return len(pom.Parent.GroupId) != 0
 }
 
 func (pom *Pom) Deps() []*Dependency {
@@ -138,8 +146,6 @@ func (d *Dependency) GetDeps(repos []*Repo) []*Dependency {
 		var empty []*Dependency
 		return empty
 	}
-
-	fmt.Printf("  parent: %v+\n\n", pom.Parent)
 
 	return pom.Deps()
 }
