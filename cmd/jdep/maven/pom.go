@@ -1,9 +1,6 @@
 package maven
 
-import (
-	"encoding/xml"
-	"strings"
-)
+import "encoding/xml"
 
 type Pom struct {
 	Name         string       `xml:"name"`
@@ -28,11 +25,17 @@ func (pom *Pom) HasParent() bool {
 	return len(pom.Parent.GroupId) != 0
 }
 
+func (pom *Pom) GetParent() *Dependency {
+	return &pom.Parent
+}
+
 func (pom *Pom) Properties() map[string]string {
 
 	m := make(map[string]string)
 
-	m["project.version"] = pom.Version
+	if len(pom.Version) != 0 {
+		m["project.version"] = pom.Version
+	}
 
 	for _, p := range pom.Props.Property {
 		m[p.XMLName.Local] = p.Value
@@ -53,19 +56,4 @@ func (pom *Pom) Deps() []*Dependency {
 	}
 
 	return results
-}
-
-// Implementation details
-
-func isProperty(value string) bool {
-	return strings.HasPrefix(value, "${")
-}
-
-func varName(value string) string {
-	if !isProperty(value) {
-		return value
-	}
-
-	e := len(value) - 1
-	return value[2:e]
 }
