@@ -1,14 +1,17 @@
 package maven
 
 import (
+	"bytes"
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
+
+	"golang.org/x/text/encoding/charmap"
 )
 
 // Types
@@ -45,15 +48,21 @@ func (resolver *Resolver) GetPom(uri string) (*Pom, error) {
 
 	for _, repo := range resolver.Repos {
 		data, err := repo.getPomFromNet(resolver.LocalCache, uri)
-		if err == nil {
-			return data, nil
+		if err != nil {
+			fmt.Printf("Unable to find data on net: %#v, %#v\n", repo, err)
+			continue
 		}
+
+		fmt.Printf("got at %#v, so returning\n", repo)
+		return data, nil
+
 	}
 
 	return &Pom{}, errors.New("Not found")
 }
 
 func (resolver *Resolver) GetDeps(dep *Dependency) []*Dependency {
+
 	pom, err := resolver.GetPom(dep.Path())
 	if err != nil {
 		var empty []*Dependency
@@ -61,23 +70,13 @@ func (resolver *Resolver) GetDeps(dep *Dependency) []*Dependency {
 	}
 
 	props := resolver.GetProperties(dep)
-	for _, d := range pom.Deps() {
 
-		if isProperty(d.Version) {
-			d.Version = props[varName(d.Version)]
-		} else if d.Version == "" {
-			//
-			// These need to be pulled from dependencyManagement in the
-			// parent pom(s). The deps in dependencyManagement need props
-			// injected. So:
-			//
-			// - get the props
-			// - get the depManagement stuff
-			// - update depManagement with props (as needed)
-			// - provide some way to look up versions
-			//
-			pname := strings.Replace(d.ArtifactId, "-", ".", -1) + ".version"
-			d.Version = props[pname]
+	for i, d := range pom.Dependencies {
+		dd := pom.Dependencies[i]
+		if isProperty(dd.Version) {
+			pom.Dependencies[i].Version = props[varName(pom.Dependencies[i].Version)]
+		} else if dd.Version == "" {
+			pom.Dependencies[i].Version = props[d.ArtifactId]
 		}
 	}
 
@@ -90,19 +89,6 @@ func (resolver *Resolver) GetProperties(dep *Dependency) map[string]string {
 }
 
 // Implementation
-
-func isProperty(value string) bool {
-	return strings.HasPrefix(value, "${")
-}
-
-func varName(value string) string {
-	if !isProperty(value) {
-		return value
-	}
-
-	e := len(value) - 1
-	return value[2:e]
-}
 
 func (resolver *Resolver) ancestors(dep *Dependency) []*Pom {
 
@@ -200,8 +186,20 @@ func (resolver *Resolver) getPomFromFile(pomUri string) (*Pom, error) {
 	return unmarshalPom(data)
 }
 
+func makeCharsetReader(charset string, input io.Reader) (io.Reader, error) {
+	if charset == "ISO-8859-1" {
+		return charmap.Windows1252.NewDecoder().Reader(input), nil
+	}
+	return nil, fmt.Errorf("Unknown charset: %s", charset)
+}
+
 func unmarshalPom(data []byte) (*Pom, error) {
+
+	r := bytes.NewReader(data)
+
 	var pom Pom
-	error := xml.Unmarshal(data, &pom)
-	return &pom, error
+	decoder := xml.NewDecoder(r)
+	decoder.CharsetReader = makeCharsetReader
+	err := decoder.Decode(&pom)
+	return &pom, err
 }

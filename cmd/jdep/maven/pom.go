@@ -3,13 +3,14 @@ package maven
 import "encoding/xml"
 
 type Pom struct {
-	Name         string       `xml:"name"`
-	ArtifactId   string       `xml:"artifactId"`
-	Packaging    string       `xml:"packaging"`
-	Version      string       `xml:"version"` // If no version, use parents'
-	Parent       Dependency   `xml:"parent"`
-	Dependencies []Dependency `xml:"dependencies>dependency"`
-	Props        PropertyList `xml:"properties"`
+	Name                string       `xml:"name"`
+	ArtifactId          string       `xml:"artifactId"`
+	Packaging           string       `xml:"packaging"`
+	Version             string       `xml:"version"` // If no version, use parents'
+	Parent              Dependency   `xml:"parent"`
+	Dependencies        []Dependency `xml:"dependencies>dependency"`
+	ManagedDependencies []Dependency `xml:"dependencyManagement>dependencies>dependency"`
+	Props               PropertyList `xml:"properties"`
 }
 
 type PropertyList struct {
@@ -39,6 +40,20 @@ func (pom *Pom) Properties() map[string]string {
 
 	for _, p := range pom.Props.Property {
 		m[p.XMLName.Local] = p.Value
+	}
+
+	for _, md := range pom.ManagedDependencies {
+		key := md.ArtifactId
+		value := md.Version
+
+		if isProperty(value) {
+			alias := m[varName(value)]
+			if alias != "" {
+				value = alias
+			}
+		}
+
+		m[key] = value
 	}
 
 	return m
