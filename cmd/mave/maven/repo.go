@@ -16,14 +16,14 @@ import (
 
 // Types
 
-type Repo struct {
-	Host string
-	Path string
-}
-
 type Resolver struct {
 	LocalCache string
 	Repos      []*Repo
+}
+
+type Repo struct {
+	Host string
+	Path string
 }
 
 // Constructors
@@ -71,16 +71,19 @@ func (resolver *Resolver) GetDeps(dep *Dependency) []*Dependency {
 
 	props := resolver.GetProperties(dep)
 
-	for i, d := range pom.Dependencies {
-		dd := pom.Dependencies[i]
-		if isProperty(dd.Version) {
-			pom.Dependencies[i].Version = props[varName(pom.Dependencies[i].Version)]
-		} else if dd.Version == "" {
-			pom.Dependencies[i].Version = props[d.ArtifactId]
+	deps := make([]*Dependency, 0)
+
+	for _, d := range pom.Deps() {
+		if isProperty(d.Version) {
+			d.Version = props[varName(d.Version)]
+		} else if d.Version == "" {
+			d.Version = props[d.ArtifactId]
 		}
+
+		deps = append(deps, d)
 	}
 
-	return pom.Deps()
+	return deps
 }
 
 func (resolver *Resolver) GetProperties(dep *Dependency) map[string]string {
