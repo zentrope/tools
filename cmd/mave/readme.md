@@ -6,6 +6,8 @@ can compile to a static binary. In other words, Go.
 ## To Do
 
 - [ ] Design a project file in json or edn or toml or yaml.
+- [ ] Add commands (classpath, tree, etc)
+- [ ] Document rationale
 - [ ] Filter out redundant deps for a vector of dep peers.
 - [ ] Cache jars.
 - [ ] Cache sha1 or md5 jar and pom checksums.
