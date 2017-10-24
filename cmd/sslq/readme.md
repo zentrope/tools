@@ -97,6 +97,7 @@ to a `help` parameter:
       help        - print usage help
       cert <host> - print the host's PEM encoded cert
       json <host> - print the host cert's metadata as JSON
+      text <host> - print the host's cert as key/value text
 
 Hopefully this is reasonably self explanatory. If you do something the
 utility doesn't understand, you're likely to see the usage

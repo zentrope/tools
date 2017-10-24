@@ -177,6 +177,7 @@ func usage(errorMsg string) {
 	fmt.Println("  help        - print usage help")
 	fmt.Println("  cert <host> - print the host's PEM encoded cert")
 	fmt.Println("  json <host> - print the host cert's metadata as JSON")
+	fmt.Println("  text <host> - print the host's cert as key/value text")
 }
 
 func main() {
