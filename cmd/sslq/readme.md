@@ -5,21 +5,89 @@ A tiny utility to print out an SSL cert in JSON and PEM formats.
 ## Rationale
 
 This is an initial (and likely end-of-the-line) utility for pulling
-down information about SSL certs such that I could monitor them over
+down information about SSL certs such that one could monitor them over
 time, looking for changes.
 
 ## Usage
 
-To print a PEM version of the cert:
+To print a representation of the certificate, use the following
+command pattern:
 
-    $ ssql cert google.com
+    $ ssql <format> amazon.com
 
+Where `<format>` is:
 
-To print a JSON version of the cert:
+* ssql **cert** amazon.com <br/> Display (or pipe to a data file) the
+  certificate in the typical PEM format (the rows of base64
+  characters):
 
-    $ ssql json google.com
+        -----BEGIN CERTIFICATE-----
+        MIIG0zCCBbugAwIBAgIQKC6Ws2t21thSRu27MbIMmDANBgkqhkiG9w0BAQsFADB+
+        MQswCQYDVQQGEwJVUzEdMBsGA1UEChMUU3ltYW50ZWMgQ29ycG9yYXRpb24xHzAd
+        ...
+        uxXJgLRy8z637agLgFpbusEan/jEDHos82JptHuIxaj8QEyOH1PgjEgRmX9YCaM5
+        n9MOaiOpkBG7S/a+podi2l70IkZROvU=
+        -----END CERTIFICATE-----
 
-Basic usage:
+* sslq **json** amazon.com<br/> Display the certificate in a JSON
+  format:
+
+        // Lots of stuff removed from this example
+        {
+          "Version": 3,
+          "SerialNumber": 53411022063429438665395896543651957912,
+          "Issuer": {
+            "Country": [ "US" ],
+            "Organization": [ "Symantec Corporation" ],
+            "OrganizationalUnit": [ "Symantec Trust Network" ],
+            "CommonName": "Symantec Class 3 Secure Server CA - G4"
+          },
+          "Subject": {
+            "Country": [ "US" ],
+            "Organization": [ "Amazon.com, Inc." ],
+            "Locality": [ "Seattle" ],
+            "Province": [ "Washington" ],
+            "CommonName": "www.amazon.com",
+          "NotBefore": "2017-09-20T00:00:00Z",
+          "NotAfter": "2018-09-21T23:59:59Z",
+          "DNSNames": [
+            "amazon.com",
+            "amzn.com",
+            "uedata.amazon.com"
+          ]
+        }
+
+    The <small>JSON</small> format also contains a base64 encoded
+    version of the complete certificate, not shown here.
+
+* sslq **text** amazon.com<br/> Display the certificate as rows of
+  text, using a [Java Properties][jp] format.
+
+        # Same as the JSON version; same things removed.
+        cert.version                        = 3
+        cert.serial.number                  = 53411022063429438665395896543651957912
+        cert.issuer.common.name             = Symantec Class 3 Secure Server CA - G4
+        cert.issuer.country                 = US
+        cert.issuer.organization            = Symantec Corporation
+        cert.issuer.organizational.unit     = Symantec Trust Network
+        cert.subject.organization           = Amazon.com, Inc.
+        cert.subject.common.name            = www.amazon.com
+        cert.subject.country                = US
+        cert.notbefore                      = 2017-09-20T00:00:00Z
+        cert.notafter                       = 2018-09-21T23:59:59Z
+        cert.dns.names                      = amazon.com, amzn.com, uedata.amazon.com, us.amazon.com, www.amazon.com, www.amzn.com, corporate.amazon.com, buybox.amazon.com, iphone.amazon.com, yp.amazon.com, home.amazon.com, origin-www.amazon.com, buckeye-retail-website.amazon.com, huddles.amazon.com
+
+The text version is especially good for [diffing][diff] the certificate over
+time.
+
+[jp]: https://en.wikipedia.org/wiki/.properties
+[diff]: https://en.wikipedia.org/wiki/Diff_utility
+
+## Help
+
+The utility is a typical unix-ish command line application with regard
+to a `help` parameter:
+
 
     $ ssql help
 
@@ -30,7 +98,9 @@ Basic usage:
       cert <host> - print the host's PEM encoded cert
       json <host> - print the host cert's metadata as JSON
 
-Hopefully this is reasonably self explanatory.
+Hopefully this is reasonably self explanatory. If you do something the
+utility doesn't understand, you're likely to see the usage
+information, too.
 
 ## Install Binary
 
@@ -49,7 +119,7 @@ and a binary will show up:
 
     $ $GOPATH/bin/sslq
 
-and be available on your path.
+and be available on your `$PATH`.
 
 NOTE: Once built, you can copy this binary to other MacOS workstations
 without having to install a Go development environment.
