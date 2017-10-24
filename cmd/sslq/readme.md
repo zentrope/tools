@@ -25,10 +25,10 @@ Basic usage (`ssql help`) is:
 
     COMMANDS:
       help        - print usage help
-      cert <host> - print the PEM encoded cert at host
-      json <host> - print JSON metadata about the cert at host
+      cert <host> - print the host's PEM encoded cert
+      json <host> - print the host cert's metadata as JSON
 
-This
+Hopefully this is reasonably self explanatory.
 
 ## Install Binary
 
@@ -45,7 +45,7 @@ all you have to do to install this is:
 
 and a binary will show up:
 
-    $ ~/Go/bin/sslq
+    $ $GOPATH/bin/sslq
 
 and be available on your path.
 

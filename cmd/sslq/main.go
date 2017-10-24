@@ -89,8 +89,8 @@ func usage(errorMsg string) {
 	fmt.Printf("USAGE: ssql COMMAND\n\n")
 	fmt.Println("COMMANDS:")
 	fmt.Println("  help        - print usage help")
-	fmt.Println("  cert <host> - print the PEM encoded cert at host")
-	fmt.Println("  json <host> - print JSON metadata about the cert at host")
+	fmt.Println("  cert <host> - print the host's PEM encoded cert")
+	fmt.Println("  json <host> - print the host cert's metadata as JSON")
 }
 
 func main() {
