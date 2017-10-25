@@ -13,11 +13,12 @@ time, looking for changes.
 To print a representation of the certificate, use the following
 command pattern:
 
-    $ ssql <format> amazon.com
+    $ ssql amazon.com [text|cert|pem|json]
 
-Where `<format>` is:
+Where output format defaults to `text` but also supports `cert`,
+`pem`, and `json`:
 
-* ssql **cert** amazon.com <br/> Display (or pipe to a data file) the
+* **sslq amazon.com cert**  or **pem**<br/> Display (or pipe to a data file) the
   certificate in the typical PEM format (the rows of base64
   characters):
 
@@ -29,7 +30,7 @@ Where `<format>` is:
         n9MOaiOpkBG7S/a+podi2l70IkZROvU=
         -----END CERTIFICATE-----
 
-* sslq **json** amazon.com<br/> Display the certificate in a JSON
+* **sslq amazon.com json**<br/> Display the certificate in a JSON
   format:
 
         // Lots of stuff removed from this example
@@ -60,7 +61,7 @@ Where `<format>` is:
     The <small>JSON</small> format also contains a base64 encoded
     version of the complete certificate, not shown here.
 
-* sslq **text** amazon.com<br/> Display the certificate as rows of
+* **sslq amazon.com text**<br/> Display the certificate as rows of
   text, using a [Java Properties][jp] format.
 
         # Same as the JSON version; same things removed.
@@ -73,8 +74,8 @@ Where `<format>` is:
         cert.subject.organization           = Amazon.com, Inc.
         cert.subject.common.name            = www.amazon.com
         cert.subject.country                = US
-        cert.notbefore                      = 2017-09-20T00:00:00Z
-        cert.notafter                       = 2018-09-21T23:59:59Z
+        cert.not.valid.before               = 2017-09-20T00:00:00Z
+        cert.not.valid.after                = 2018-09-21T23:59:59Z
         cert.dns.names                      = amazon.com, amzn.com, uedata.amazon.com, us.amazon.com, www.amazon.com, www.amzn.com, corporate.amazon.com, buybox.amazon.com, iphone.amazon.com, yp.amazon.com, home.amazon.com, origin-www.amazon.com, buckeye-retail-website.amazon.com, huddles.amazon.com
 
 The text version is especially good for [diffing][diff] the certificate over
@@ -89,15 +90,17 @@ The utility is a typical unix-ish command line application with regard
 to a `help` parameter:
 
 
-    $ ssql help
+```text
+$ ssql help
 
-    USAGE: ssql COMMAND
+USAGE: ssql hostname [text|cert|pem|json]
 
-    COMMANDS:
-      help        - print usage help
-      cert <host> - print the host's PEM encoded cert
-      json <host> - print the host cert's metadata as JSON
-      text <host> - print the host's cert as key/value text
+FORMATS:
+  cert | pem     - PEM base64-encoded format
+  json           - JSON format
+  text (default) - key/value text (like Java properties)
+```
+
 
 Hopefully this is reasonably self explanatory. If you do something the
 utility doesn't understand, you're likely to see the usage
@@ -126,6 +129,10 @@ NOTE: Once built, you can copy this binary to other MacOS workstations
 without having to install a Go development environment.
 
 ## Considerations
+
+* Might be nice to turn those ASN.1 identifiers into actual text.
+
+* I should add the "extensions" stuff into the flat text version.
 
 * I don't know how to print out the cert in the same way `openssl`
   does in an automated way.

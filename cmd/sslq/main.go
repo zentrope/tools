@@ -41,7 +41,7 @@ func getCert(host string) (*x509.Certificate, error) {
 	conn, err := tls.DialWithDialer(dialer, "tcp", hostname, &tls.Config{})
 
 	if err != nil {
-		log.Fatal("failed to connect: " + err.Error())
+		return nil, err
 	}
 
 	defer conn.Close()
@@ -145,8 +145,8 @@ func textDump(cert *x509.Certificate) {
 	pp("serial.number", cert.SerialNumber)
 	ppkix("issuer", cert.Issuer)
 	ppkix("subject", cert.Subject)
-	pp("notbefore", cert.NotBefore)
-	pp("notafter", cert.NotAfter)
+	pp("not.valid.before", cert.NotBefore)
+	pp("not.valid.after", cert.NotAfter)
 	pp("keyusage", cert.KeyUsage)
 	pp("signature", cert.Signature)
 	pp("signature.algorithm", cert.SignatureAlgorithm)
@@ -168,45 +168,47 @@ func textDump(cert *x509.Certificate) {
 	pp("policy.identifiers", cert.PolicyIdentifiers)
 }
 
-func usage(errorMsg string) {
+func usage(errorMsg string, params ...interface{}) {
 	if errorMsg != "" {
-		fmt.Printf("ERROR: %v\n\n", errorMsg)
+		msg := fmt.Sprintf(errorMsg, params...)
+		fmt.Printf("ERROR: %v\n\n", msg)
 	}
-	fmt.Printf("USAGE: ssql COMMAND\n\n")
-	fmt.Println("COMMANDS:")
-	fmt.Println("  help        - print usage help")
-	fmt.Println("  cert <host> - print the host's PEM encoded cert")
-	fmt.Println("  json <host> - print the host cert's metadata as JSON")
-	fmt.Println("  text <host> - print the host's cert as key/value text")
+	fmt.Printf("USAGE: ssql hostname [text|cert|pem|json]\n\n")
+	fmt.Println("FORMATS:")
+	fmt.Println("  cert | pem     - PEM base64-encoded format")
+	fmt.Println("  json           - JSON format")
+	fmt.Println("  text (default) - key/value text (like Java properties)")
 }
 
-func main() {
+func getTargetOrExit(args []string) (string, string) {
+	format := "text"
 
-	if len(os.Args) >= 2 && os.Args[1] == "help" {
+	if len(args) < 2 || args[1] == "help" {
 		usage("")
 		os.Exit(0)
 	}
 
-	if len(os.Args) == 2 {
-		usage("<host> required.")
-		os.Exit(1)
+	if len(args) >= 3 {
+		format = args[2]
 	}
 
-	if len(os.Args) < 3 {
-		usage("Invalid number of parameters.")
-		os.Exit(1)
-	}
+	host := args[1]
+	return host, format
+}
 
-	command := os.Args[1]
-	host := os.Args[2]
+func main() {
+
+	host, format := getTargetOrExit(os.Args)
 
 	certificate, err := getCert(host)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	switch command {
+	switch format {
 
+	case "pem":
+		fallthrough
 	case "cert":
 		pemDump(certificate)
 
@@ -217,6 +219,6 @@ func main() {
 		textDump(certificate)
 
 	default:
-		usage("Unrecognized command: " + command)
+		usage("Unrecognized output format: '%v'.", format)
 	}
 }
