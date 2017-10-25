@@ -80,39 +80,75 @@ func jsonDump(certificate *x509.Certificate) {
 
 func textDump(cert *x509.Certificate) {
 
-	// I suspect this might be more interesting if I figured out
-	// reflection.
+	ky := []string{"Digital Signature", "Content Commitment", "KeyEncipherment",
+		"DataEnciphermetn", "KeyAgreement", "CertSign", "CRLSign", "EncipherOnly",
+		"DecipherOnly"}
 
-	p := "cert.%-30v = %v\n"
+	eky := []string{"Any", "ServerAuth", "ClientAuth", "CodeSigning", "EmailProtection",
+		"IPSECEndSystem", "IPSEC Tunnel", "IPSEC User", "TimeStamping", "OCSPSigning",
+		"Microsoft Server Gated Crypto", "NetscapeServerGatedCrypto"}
 
 	var spf func(x interface{}) string
+
 	spf = func(x interface{}) string {
 		switch t := x.(type) {
+
 		case []string:
 			return strings.Join(x.([]string), ", ")
+
+		case []net.IP:
+			if len(x.([]net.IP)) == 0 {
+				return ""
+			}
+			vals := make([]string, 0)
+			for _, v := range x.([]net.IP) {
+				vals = append(vals, v.String())
+			}
+			return spf(vals)
+
 		case []int:
+			raw := x.([]int)
+			if len(raw) == 0 {
+				return ""
+			}
 			vals := make([]string, 0)
 			for _, v := range x.([]int) {
 				vals = append(vals, fmt.Sprintf("%v", v))
 			}
 			return spf(vals)
+
+		case x509.KeyUsage:
+			return ky[x.(x509.KeyUsage)]
+
+		case []x509.ExtKeyUsage:
+			vals := make([]string, 0)
+			for _, v := range x.([]x509.ExtKeyUsage) {
+				vals = append(vals, eky[v])
+			}
+			return spf(vals)
+
 		case []asn1.ObjectIdentifier:
 			vals := make([]string, 0)
 			for _, v := range x.([]asn1.ObjectIdentifier) {
 				vals = append(vals, fmt.Sprintf("%v", v))
 			}
 			return spf(vals)
+
 		case []byte:
 			return base64.StdEncoding.EncodeToString(x.([]byte))
+
 		case time.Time:
 			return x.(time.Time).Format(time.RFC3339)
+
 		default:
 			return fmt.Sprintf("%v", t)
 		}
 	}
 
+	pattern := "cert.%-30v = %v\n"
+
 	pp := func(prop string, value interface{}) {
-		fmt.Printf(p, prop, spf(value))
+		fmt.Printf(pattern, prop, spf(value))
 	}
 
 	ppATV := func(prefix string, tvs []pkix.AttributeTypeAndValue) {
@@ -141,6 +177,19 @@ func textDump(cert *x509.Certificate) {
 		ppATV(prefix+".names.extra", pn.ExtraNames)
 	}
 
+	ppext := func(px string, exs []pkix.Extension) {
+		if len(exs) == 0 {
+			pp(px, "")
+			return
+		}
+		for i, ex := range exs {
+			prop := fmt.Sprintf("%v.%v.", px, i)
+			pp(prop+"id", ex.Id)
+			pp(prop+"critical", ex.Critical)
+			pp(prop+"value", ex.Value)
+		}
+	}
+
 	pp("version", cert.Version)
 	pp("serial.number", cert.SerialNumber)
 	ppkix("issuer", cert.Issuer)
@@ -148,6 +197,13 @@ func textDump(cert *x509.Certificate) {
 	pp("not.valid.before", cert.NotBefore)
 	pp("not.valid.after", cert.NotAfter)
 	pp("keyusage", cert.KeyUsage)
+
+	ppext("extensions", cert.Extensions)
+	ppext("extensions.extra", cert.ExtraExtensions)
+	pp("unhandled.critical.extensions", cert.UnhandledCriticalExtensions)
+	pp("extended.key.usages", cert.ExtKeyUsage)
+	pp("extended.key.usages.unknown", cert.UnknownExtKeyUsage)
+
 	pp("signature", cert.Signature)
 	pp("signature.algorithm", cert.SignatureAlgorithm)
 	pp("basic.contraints.valid", cert.BasicConstraintsValid)
@@ -207,9 +263,7 @@ func main() {
 
 	switch format {
 
-	case "pem":
-		fallthrough
-	case "cert":
+	case "cert", "pem":
 		pemDump(certificate)
 
 	case "json":
