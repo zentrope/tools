@@ -90,55 +90,49 @@ func textDump(cert *x509.Certificate) {
 
 	var spf func(x interface{}) string
 
+	cjoin := func(a, b string) string {
+		return strings.Trim(strings.Join([]string{a, b}, ", "), ", ")
+	}
+
 	spf = func(x interface{}) string {
+
 		switch t := x.(type) {
 
-		case []string:
-			return strings.Join(x.([]string), ", ")
-
-		case []net.IP:
-			if len(x.([]net.IP)) == 0 {
-				return ""
-			}
-			vals := make([]string, 0)
-			for _, v := range x.([]net.IP) {
-				vals = append(vals, v.String())
-			}
-			return spf(vals)
-
-		case []int:
-			raw := x.([]int)
-			if len(raw) == 0 {
-				return ""
-			}
-			vals := make([]string, 0)
-			for _, v := range x.([]int) {
-				vals = append(vals, fmt.Sprintf("%v", v))
-			}
-			return spf(vals)
-
+		case string:
+			return strings.TrimSpace(t)
 		case x509.KeyUsage:
-			return ky[x.(x509.KeyUsage)]
-
-		case []x509.ExtKeyUsage:
-			vals := make([]string, 0)
-			for _, v := range x.([]x509.ExtKeyUsage) {
-				vals = append(vals, eky[v])
-			}
-			return spf(vals)
-
-		case []asn1.ObjectIdentifier:
-			vals := make([]string, 0)
-			for _, v := range x.([]asn1.ObjectIdentifier) {
-				vals = append(vals, fmt.Sprintf("%v", v))
-			}
-			return spf(vals)
+			return ky[t]
+		case x509.ExtKeyUsage:
+			return eky[t]
+		case time.Time:
+			return t.Format(time.RFC3339)
 
 		case []byte:
-			return base64.StdEncoding.EncodeToString(x.([]byte))
+			return base64.StdEncoding.EncodeToString(t)
 
-		case time.Time:
-			return x.(time.Time).Format(time.RFC3339)
+		case []string:
+			if len(t) == 0 {
+				return ""
+			}
+			return cjoin(spf(t[0]), spf(t[1:]))
+
+		case []net.IP:
+			if len(t) == 0 {
+				return ""
+			}
+			return cjoin(spf(t[0]), spf(t[1:]))
+
+		case []x509.ExtKeyUsage:
+			if len(t) == 0 {
+				return ""
+			}
+			return cjoin(spf(t[0]), spf(t[1:]))
+
+		case []asn1.ObjectIdentifier:
+			if len(t) == 0 {
+				return ""
+			}
+			return cjoin(spf(t[0]), spf(t[1:]))
 
 		default:
 			return fmt.Sprintf("%v", t)
