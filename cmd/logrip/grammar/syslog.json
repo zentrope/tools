@@ -1,0 +1,24 @@
+{
+  "name": "Syslogd",
+  "os": "Darwin",
+  "condenseWhitespace": true,
+  "checkContinuations": true,
+  "numberOfFields": 6,
+  "delimiter": "\\s",
+  "fields": [
+    { "name": "month" },
+    { "name": "day" },
+    { "name": "_",
+      "delimiter": "[:]",
+      "fields": [
+        { "name": "hour" },
+        { "name": "minute" },
+        { "name": "second" }]},
+    { "name": "host", "index": 3 },
+    { "name": "_",
+      "delimiter": "[\\[]",
+      "scrub": "[\\]]|([:]$)",
+      "fields": [
+        { "name": "process-name" },
+        { "name": "process-id"}]},
+    { "name": "message" }]}
