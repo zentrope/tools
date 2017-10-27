@@ -28,10 +28,11 @@ import (
 )
 
 type field struct {
-	Name      string  `json:"name"`
-	Delimiter string  `json:"delimiter"`
-	Scrub     string  `json:"scrub"`
-	Fields    []field `json:"fields"`
+	Name           string  `json:"name"`
+	Delimiter      string  `json:"delimiter"`
+	Scrub          string  `json:"scrub"`
+	NumberOfFields int     `json:"numberOfFields"`
+	Fields         []field `json:"fields"`
 }
 
 type grammer struct {
@@ -93,6 +94,7 @@ var condenseRE = regexp.MustCompile(`\s`)
 type fieldMap map[string]string
 
 func (r field) parse(env fieldMap, line string) {
+
 	if len(r.Fields) == 0 {
 		env[r.Name] = line
 		return
@@ -100,13 +102,18 @@ func (r field) parse(env fieldMap, line string) {
 
 	line2 := line
 	tokensRE := regexp.MustCompile(r.Delimiter)
+
 	if r.Scrub != "" {
 		scrubRE := regexp.MustCompile(r.Scrub)
 		line2 = scrubRE.ReplaceAllLiteralString(line2, "")
 	}
-	tokens := tokensRE.Split(line2, -1)
+
+	tokens := tokensRE.Split(line2, len(r.Fields))
+
 	for i, field := range r.Fields {
-		field.parse(env, tokens[i])
+		if i < len(tokens) {
+			field.parse(env, tokens[i])
+		}
 	}
 }
 
@@ -114,12 +121,16 @@ func (r *grammer) parse(line string) fieldMap {
 	tokensRE := regexp.MustCompile(r.Delimiter)
 	tokens := tokensRE.Split(line, r.NumberOfFields)
 
-	data := make(fieldMap, 0)
-	for i, field := range r.Fields {
-		field.parse(data, tokens[i])
+	if len(tokens) < len(r.Fields) {
+		log.Fatal(fmt.Sprintf("mismatched tokens/fields: `%v`[%#v]", r.Delimiter, tokens))
 	}
 
-	return data
+	env := make(fieldMap, 0)
+	for i, field := range r.Fields {
+		field.parse(env, tokens[i])
+	}
+
+	return env
 }
 
 func (r *grammer) isContinuation(line string) bool {
@@ -140,7 +151,17 @@ func (r *grammer) doOutput(line string) {
 		line2 = strings.TrimSpace(line2)
 	}
 
-	fmt.Printf("%#v\n", newLogFact(r.parse(line2)))
+	fmt.Printf("\n%s\n", line2)
+
+	result := r.parse(line2)
+	fmt.Println("fact:")
+	for k, v := range result {
+		fmt.Printf("  %-8v: %v\n", k, v)
+	}
+	//fmt.Printf("fact:\n  prelude: %v\n  message: %v\n", result["prelude"], result["message"])
+	// fmt.Printf("%#v\n", r.parse(line2)["prelude"])
+
+	//	fmt.Printf("%#v\n", newLogFact(r.parse(line2)))
 }
 
 //-----------------------------------------------------------------------------
