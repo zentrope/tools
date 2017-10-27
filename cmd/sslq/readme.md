@@ -1,12 +1,14 @@
 # sslq
 
-A tiny utility to print out an SSL cert in JSON and PEM formats.
+A tiny utility to print out an SSL cert in JSON and PEM or Java
+Properties formats. The SSL cert can be loaded from a local PEM file,
+or from an Internet host.
 
 ## Rationale
 
 This is an initial (and likely end-of-the-line) utility for pulling
-down information about SSL certs such that one could monitor them over
-time, looking for changes.
+down information about SSL certs such that one could monitor them,
+looking for changes over time.
 
 ## Usage
 
@@ -15,12 +17,15 @@ command pattern:
 
     $ ssql amazon.com [text|cert|pem|json]
 
+or:
+
+    $ ssql ~/Desktop/cert.pem [text|cert|pem|json]
+
 Where output format defaults to `text` but also supports `cert`,
 `pem`, and `json`:
 
-* **sslq amazon.com cert**  or **pem**<br/> Display (or pipe to a data file) the
-  certificate in the typical PEM format (the rows of base64
-  characters):
+* **sslq amazon.com cert** or **sslq cert.pem pem**<br/> Display the certificate in
+  the typical PEM format (the rows of base64 characters):
 
         -----BEGIN CERTIFICATE-----
         MIIG0zCCBbugAwIBAgIQKC6Ws2t21thSRu27MbIMmDANBgkqhkiG9w0BAQsFADB+
@@ -30,8 +35,8 @@ Where output format defaults to `text` but also supports `cert`,
         n9MOaiOpkBG7S/a+podi2l70IkZROvU=
         -----END CERTIFICATE-----
 
-* **sslq amazon.com json**<br/> Display the certificate in a JSON
-  format:
+* **sslq amazon.com json** or **sslq cert.pem json**<br/> Display the
+  certificate as a <small>JSON</small> document:
 
         // Lots of stuff removed from this example
         {
@@ -61,8 +66,8 @@ Where output format defaults to `text` but also supports `cert`,
     The <small>JSON</small> format also contains a base64 encoded
     version of the complete certificate, not shown here.
 
-* **sslq amazon.com text**<br/> Display the certificate as rows of
-  text, using a [Java Properties][jp] format.
+* **sslq amazon.com text** or **sslq cert.pem text**<br/> Display the
+  certificate as rows of text, using a [Java Properties][jp] format.
 
         # Same as the JSON version; same things removed.
         cert.version                        = 3
@@ -99,16 +104,14 @@ to a `help` parameter:
 
 
 ```text
-$ ssql help
 
-USAGE: ssql hostname [text|cert|pem|json]
+USAGE: ssql hostname|file.pem [text|cert|pem|json]
 
 FORMATS:
   cert | pem     - PEM base64-encoded format
   json           - JSON format
   text (default) - key/value text (like Java properties)
 ```
-
 
 Hopefully this is reasonably self explanatory. If you do something the
 utility doesn't understand, you're likely to see the usage
@@ -139,15 +142,6 @@ without having to install a Go development environment.
 ## Considerations
 
 * Might be nice to turn those ASN.1 identifiers into actual text.
-
-* I should add the "extensions" stuff into the flat text version.
-
-* I don't know how to print out the cert in the same way `openssl`
-  does in an automated way.
-
-* An `openssl` equivalent to this doesn't produce the same PEM files,
-  but the PEM I get with this method looks just like the ones
-  installed on my server. I'm going to assume it's basically correct.
 
 ## License
 

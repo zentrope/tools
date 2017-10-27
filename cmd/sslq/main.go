@@ -24,6 +24,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -32,16 +33,32 @@ import (
 	"github.com/zentrope/tools/lib"
 )
 
-func getCerts(host string) ([]*x509.Certificate, error) {
+func getCertsFromFile(path string) ([]*x509.Certificate, error) {
+
+	contents, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	block, _ := pem.Decode(contents)
+
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return []*x509.Certificate{cert}, nil
+}
+
+func getCertsFromNet(host string) ([]*x509.Certificate, error) {
 	hostname := fmt.Sprintf("%v:443", host)
 
 	dialer := &net.Dialer{Timeout: time.Second * 3}
 	conn, err := tls.DialWithDialer(dialer, "tcp", hostname, &tls.Config{
-		InsecureSkipVerify: true, // We want to seee bad certs, too.
+		InsecureSkipVerify: true, // We want to see bad certs, too.
 	})
 
 	if err != nil {
-		fmt.Println("ERROR: Unable to establish TLS connection, conn ")
 		return nil, err
 	}
 
@@ -55,14 +72,6 @@ func getCerts(host string) ([]*x509.Certificate, error) {
 	}
 
 	return certs, nil
-}
-
-func getCert(host string) (*x509.Certificate, error) {
-	certs, err := getCerts(host)
-	if err != nil {
-		return nil, err
-	}
-	return certs[0], nil
 }
 
 func pemDump(certificate *x509.Certificate) {
@@ -99,14 +108,14 @@ func usage(errorMsg string, params ...interface{}) {
 		msg := fmt.Sprintf(errorMsg, params...)
 		fmt.Printf("ERROR: %v\n\n", msg)
 	}
-	fmt.Printf("USAGE: ssql hostname [text|cert|pem|json]\n\n")
+	fmt.Printf("USAGE: ssql hostname|file.pem [text|cert|pem|json]\n\n")
 	fmt.Println("FORMATS:")
 	fmt.Println("  cert | pem     - PEM base64-encoded format")
 	fmt.Println("  json           - JSON format")
 	fmt.Println("  text (default) - key/value text (like Java properties)")
 }
 
-func getTargetOrExit(args []string) (string, string) {
+func mustFindParams(args []string) (string, string) {
 	format := "text"
 
 	if len(args) < 2 || args[1] == "help" {
@@ -122,14 +131,26 @@ func getTargetOrExit(args []string) (string, string) {
 	return host, format
 }
 
-func main() {
+func mustFindCerts(host string) []*x509.Certificate {
+	var certs []*x509.Certificate
+	var err, err2 error
 
-	host, format := getTargetOrExit(os.Args)
-
-	certs, err := getCerts(host)
+	certs, err = getCertsFromFile(host)
 	if err != nil {
-		log.Fatal(err)
+		certs, err2 = getCertsFromNet(host)
+		if err2 != nil {
+			fmt.Printf("ERROR: %v\n", err)
+			fmt.Printf("ERROR: %v\n", err2)
+			os.Exit(1)
+		}
 	}
+
+	return certs
+}
+
+func main() {
+	host, format := mustFindParams(os.Args)
+	certs := mustFindCerts(host)
 
 	switch format {
 
