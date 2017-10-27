@@ -76,7 +76,15 @@ Where output format defaults to `text` but also supports `cert`,
         cert.subject.country                = US
         cert.not.valid.before               = 2017-09-20T00:00:00Z
         cert.not.valid.after                = 2018-09-21T23:59:59Z
-        cert.dns.names                      = amazon.com, amzn.com, uedata.amazon.com, us.amazon.com, www.amazon.com, www.amzn.com, corporate.amazon.com, buybox.amazon.com, iphone.amazon.com, yp.amazon.com, home.amazon.com, origin-www.amazon.com, buckeye-retail-website.amazon.com, huddles.amazon.com
+        cert.dns.names                      = amazon.com, amzn.com, uedata.amazon.com...
+        cert.verified                       = true
+
+    In the case where the cert is _not_ verified, you'll see something
+    like:
+
+        cert.verified                       = false, x509: certificate signed by unknown authority
+
+    The verification stuff isn't a part of any of the other formats.
 
 The text version is especially good for [diffing][diff] the certificate over
 time.
