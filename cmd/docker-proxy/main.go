@@ -58,6 +58,9 @@ func makeProxy(socketPath string) http.HandlerFunc {
 			w.Header().Set(k, resp.Header.Get(k))
 		}
 
+		// Set CORS so even browsers can talk to this
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			w.WriteHeader(500)
@@ -79,6 +82,7 @@ func main() {
 	flag.StringVar(&socketPath, "socket", "/var/run/docker.sock", "Path to docker unix domain socket.")
 	flag.Parse()
 
+	log.Println("Use '-h', '-help' or '--help' to view docker-proxy options.")
 	log.Printf("Delegating requests from http://localhost:%v to '%v'.", httpPort, socketPath)
 	log.Printf(" - export DOCKER_HOST='tcp://localhost:%v' to spy on docker commands.", httpPort)
 
