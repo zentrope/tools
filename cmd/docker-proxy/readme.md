@@ -54,7 +54,14 @@ And you can use it with, say, `curl`:
 
 and so on.
 
-**Not required** --- I suggest exporting the `DOCKER_HOST` environment variable
+## Exploration
+
+Translating [Docker REST API][api] documentation into actual URLs can
+be callenging.
+
+Here's one way to help figure things out:
+
+I suggest exporting the `DOCKER_HOST` environment variable
 in a shell so that you can see what the URLs look like when using
 the regular docker client:
 
