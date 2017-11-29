@@ -86,7 +86,7 @@ func main() {
 	log.Printf("Delegating requests from http://localhost:%v to '%v'.", httpPort, socketPath)
 	log.Printf(" - export DOCKER_HOST='tcp://localhost:%v' to spy on docker commands.", httpPort)
 
-	address := fmt.Sprintf(":%v", httpPort)
+	address := fmt.Sprintf("0.0.0.0:%v", httpPort)
 	http.HandleFunc("/", makeProxy(socketPath))
 	err := http.ListenAndServe(address, nil)
 	if err != nil {
