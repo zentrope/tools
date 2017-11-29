@@ -10,6 +10,9 @@ refresh or bookmark a route under development.
 
 * **bsdpkg** <br/> Create a FreeBSD package from a directory.
 
+* **docker-proxy** <br/> Proxy Docker API web requests to the Docker
+  Daemon's unix domain socket.
+
 * **hname** <br/> Print host name.
 
 * **kmake** <br/> Using a config, create a bsd packageable directory.
