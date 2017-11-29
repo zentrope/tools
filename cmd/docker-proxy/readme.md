@@ -1,13 +1,13 @@
 # docker-proxy
 
 A tiny server-utility to proxy web-requests (via `curl`, say, or even
-a browser) to Docker API generally only exposed via a hard-to-use Unix
-domain socket.
+a browser) to a [Docker REST API][api] generally only exposed via a
+hard-to-use Unix domain socket.
 
 ## Quick start
 
-Assuming you have a Golang dev environment with `$GOPATH/bin` on your
-shell's `$PATH`.
+Assuming you have a Golang development environment with `$GOPATH/bin`
+on your shell's `$PATH`.
 
     $ go get -u github.com/zentrope/tools/cmd/docker-proxy
     $ docker-proxy
@@ -57,7 +57,7 @@ and so on.
 ## Exploration
 
 Translating [Docker REST API][api] documentation into actual URLs can
-be callenging.
+be challenging.
 
 Here's one way to help figure things out:
 
@@ -76,11 +76,11 @@ you can see `docker-proxy` output that looks like:
 
     $ /v1.34/images/search?filters=%7B%22is-official%22%3A%7B%22true%22%3Atrue%7D%7D&limit=25&term=clojure
 
-This shows that the filter param translates to:
+This shows that the filter parameter translates to:
 
     filters={"is-official":{"true":true}}
 
-which is neither intutive, nor clear from the Docker REST API
+which is neither intuitive, nor clear from the Docker REST API
 docs. To invoke the same `docker` command using `curl` instead ends up
 looking like:
 
