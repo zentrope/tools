@@ -11,12 +11,16 @@ you know, why not just write what you want?
 
 Standard `go` practice:
 
+    $ go get -u github.com/zentrope/tools/cmd/fdtree
+
+Or:
+
     $ go get github.com/zentrope/tools
     $ cd $GOPATH/github.com/zentrope/tools/cmd/fdtree
     $ go install
 
-That'll install it in `$GOPATH/bin` which is hopefully on your regular
-shell path.
+Either approach should install it in `$GOPATH/bin` which is hopefully
+on your regular shell path.
 
 ## Usage
 
