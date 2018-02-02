@@ -13,6 +13,9 @@ refresh or bookmark a route under development.
 * **docker-proxy** <br/> Proxy Docker API web requests to the Docker
   Daemon's unix domain socket.
 
+- **ftree** <br/> Print a date-prefixed directory tree for sorting to
+  find most recently changed files.
+
 * **hname** <br/> Print host name.
 
 * **kmake** <br/> Using a config, create a bsd packageable directory.
@@ -30,7 +33,7 @@ The newer tools have documentation in their readme files.
 
 ## License
 
-Copyright (c) 2017 Keith Irwin
+Copyright (c) 2017-2018 Keith Irwin
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published
